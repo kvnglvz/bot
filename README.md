@@ -1,4 +1,4 @@
-# bot2026 — Board of Trustees Election 2026
+# bot — Board of Trustees Election 2026
 
 Static ballot form (GitHub Pages) that submits to a Google Sheet via a Google Apps Script web app.
 
