@@ -27,9 +27,11 @@ A ballot form for the IPC Board of Trustees election. Voters enter full name and
   3. Name, valid birthday (YYYY-MM-DD, in the past), and proxy name if proxy.
   4. Vote count is between `MIN_VOTES` and `MAX_VOTES` (`MAX_VOTES` defaults to `NOMINEES.length`).
   5. Each vote is a valid nominee.
-  6. Signature matches the voter's name (case/spacing-insensitive).
-  7. Optional `Voters` allowlist sheet: member full names in column A. If the sheet is missing or empty, anyone can vote.
-  8. One ballot per member, keyed by name: the voter's own name, or the proxy-for name.
+  6. Signature matches the voter's name.
+  7. Optional `Voters` allowlist sheet: member full names in column A, no header. If the sheet is missing or empty, anyone can vote. `doGet` also returns these names (never birthdays) as `members`, which the page shows as `<datalist>` suggestions on the name and proxy fields.
+  8. Birthday verification: `Voters` column B holds each member's birthday. Once any birthday is filled in, the birthday entered for the member the ballot is for must match (the voter's own, or the proxy's "Birthday of the person you are voting for" field). A member with a blank birthday can't vote (`noBirthday`). After `MAX_ATTEMPTS` (5) wrong birthdays, that name is locked; counts live in Script Properties as `fail:<key>`. Run `unlockAll` in the editor to reset.
+- Names are compared with `key()` in `Code.gs` / `nameKey()` in `index.html` (keep them in sync): case, punctuation, and word order are ignored, so "Tejedo, Luke Soliven." equals "Luke Soliven Tejedo".
+  9. One ballot per member, keyed by name: the voter's own name, or the proxy-for name. Checked after verification so it doesn't reveal who has voted.
 - `NOMINEES` is a list of `{ name, photo }`. `photo` is a URL or a path relative to the page; empty means the placeholder SVG.
 - `LockService` serializes writes.
 - Each ballot is one row in the `Ballots` sheet: `Timestamp | Voter Name | Birthday | Voting As | Proxy For | Signature | <one column per nominee, 1 = voted>`. Birthday is stored with a leading `'` to keep it as text. Headers are built from `NOMINEES` on the first write, so finalize the nominees before voting starts.
@@ -40,13 +42,13 @@ A ballot form for the IPC Board of Trustees election. Voters enter full name and
 
 - Kevin deployed the Apps Script and tested a vote end to end (it worked).
 - An Apps Script authorization error ("Something went wrong") was resolved on his side.
-- In the repo, `SCRIPT_URL` in `index.html` is still the placeholder, and `NOMINEES` in `Code.gs` is still sample data. Kevin's real values may only exist in his Apps Script editor and local test copy, so ask for them or check before assuming.
+- `SCRIPT_URL` and `NOMINEES` are real. Hosted as its own repo `kvnglvz/bot` on GitHub Pages: `https://kvnglvz.github.io/bot/`. The repo `Code.gs` is the source of truth, but what's live is whatever Kevin last pasted and deployed in Apps Script.
+- If the page gets a CORS error or a 403 "Access Denied" from the script URL, republish the deployment (Execute as Me, Anyone). That fixed it once.
 
 ## Open decisions / TODO
 
-- Hosting is undecided: a folder `bot/` inside his existing portfolio GitHub Pages repo (his earlier stated choice), or this repo pushed as its own `bot` repo with Pages enabled. Both give the same URL. Don't do both, or the paths will conflict.
-- Add the real `SCRIPT_URL`, nominees, `MAX_VOTES`, and `MIN_VOTES`.
-- Decide whether to use the `Voters` allowlist. Without it, one ballot per member can be bypassed by spelling a name differently.
+- Real nominees (2026 AGA Final List) are in `Code.gs`, with photos in `photos/` (112×112 WebP, about 2 KB each; mapped in the order Kevin gave). Consent forms were not yet marked on the source list.
+- The `Voters` allowlist is in use (member list from Kevin, minus Kevin Galvez). Without it, one ballot per member could be bypassed by spelling a name differently.
 - The old `Ballots` sheet from testing has the previous columns (Email/Phone). Delete it before redeploying so the new headers get created.
 - Before launch:
   - Test the duplicate-email block.

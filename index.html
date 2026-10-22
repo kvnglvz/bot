@@ -65,6 +65,12 @@
       color: #fff; background: var(--accent); border: 0; border-radius: 10px; cursor: pointer;
     }
     button:disabled { opacity: .6; cursor: wait; }
+    .lang { display: flex; justify-content: flex-end; gap: 6px; margin-bottom: 8px; }
+    .lang button {
+      width: auto; padding: 6px 12px; font-size: .85rem; font-weight: 500;
+      color: var(--text); background: var(--card); border: 1px solid var(--line); border-radius: 999px;
+    }
+    .lang button[aria-pressed=true] { color: #fff; background: var(--accent); border-color: var(--accent); }
     .msg { padding: 12px 14px; border-radius: 8px; margin-bottom: 16px; }
     .msg.err { background: #fef3f2; color: var(--err); }
     .msg.ok { background: #ecfdf3; color: var(--ok); }
@@ -73,64 +79,74 @@
 </head>
 <body>
 <main>
-  <h1>IPC Board of Trustees Ballot 2026</h1>
-  <p class="sub">One ballot per member. Your vote is final once submitted.</p>
+  <div class="lang" role="group" aria-label="Language">
+    <button type="button" data-lang="en">English</button>
+    <button type="button" data-lang="tl">Tagalog</button>
+  </div>
+  <h1 data-i18n="title">IPC Board of Trustees Ballot 2026</h1>
+  <p class="sub" data-i18n="sub">One ballot per member. Your vote is final once submitted.</p>
 
   <div id="msg" class="msg hidden"></div>
-  <p id="loading" class="sub">Loading ballot…</p>
+  <p id="loading" class="sub" data-i18n="loading">Loading ballot…</p>
 
   <form id="ballot" class="hidden" novalidate>
     <div class="card">
-      <h2>Voter details</h2>
-      <label class="field">Full name <span class="req">*</span>
-        <input type="text" name="name" required autocomplete="name">
+      <h2 data-i18n="voterDetails">Voter details</h2>
+      <label class="field"><span data-i18n="fullName">Full name</span> <span class="req">*</span>
+        <input type="text" name="name" required autocomplete="off" list="members" data-i18n-ph="searchName">
       </label>
-      <label class="field">Birthday <span class="req">*</span>
+      <label class="field"><span data-i18n="birthday">Birthday</span> <span class="req">*</span>
         <input type="date" name="birthday" required autocomplete="bday">
       </label>
       <fieldset class="field">
-        <legend>I am voting as <span class="req">*</span></legend>
-        <label class="choice"><input type="radio" name="votingAs" value="self" checked> Myself</label>
-        <label class="choice"><input type="radio" name="votingAs" value="proxy"> Proxy for someone else</label>
+        <legend><span data-i18n="votingAs">I am voting as</span> <span class="req">*</span></legend>
+        <label class="choice"><input type="radio" name="votingAs" value="self" checked> <span data-i18n="self">Myself</span></label>
+        <label class="choice"><input type="radio" name="votingAs" value="proxy"> <span data-i18n="proxy">Proxy for someone else</span></label>
       </fieldset>
-      <label class="field hidden" id="proxyField">Full name of the person you are voting for <span class="req">*</span>
-        <input type="text" name="proxyFor" autocomplete="off">
-      </label>
+      <div class="hidden" id="proxyFields">
+        <label class="field"><span data-i18n="proxyName">Full name of the person you are voting for</span> <span class="req">*</span>
+          <input type="text" name="proxyFor" autocomplete="off" list="members" data-i18n-ph="searchName">
+        </label>
+        <label class="field"><span data-i18n="proxyBirthday">Birthday of the person you are voting for</span> <span class="req">*</span>
+          <input type="date" name="memberBirthday" autocomplete="off">
+        </label>
+      </div>
+      <datalist id="members"></datalist>
       <!-- honeypot: leave empty -->
       <input class="hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
     </div>
 
     <div class="card">
-      <h2>Who would you like to vote as Board of Trustees (BOT)?</h2>
-      <p><strong>Criteria</strong></p>
+      <h2 data-i18n="question">Who would you like to vote as Board of Trustees (BOT)?</h2>
+      <p><strong data-i18n="criteria">Criteria</strong></p>
       <ul class="criteria">
-        <li>Not convicted by final judgement of an offense punishable by imprisonment for a period exceeding six (6) years, or a violation of the corporate code of the Philippines</li>
-        <li>Registered member in IPC within six (6) years prior to the date of election</li>
-        <li>Member of the Corporation (IPC-AG Inc.)</li>
-        <li>Majority of Trustees must be residents of the Philippines</li>
-        <li>Not a part of IPC Pastoral Staff</li>
-        <li>To be of legal age or 21 years of age and above</li>
-        <li>Currently residing in Baguio at the time of the election</li>
-        <li>Physically fit to conduct duties of BOT</li>
+        <li data-i18n="c1">Not convicted by final judgement of an offense punishable by imprisonment for a period exceeding six (6) years, or a violation of the corporate code of the Philippines</li>
+        <li data-i18n="c2">Registered member in IPC within six (6) years prior to the date of election</li>
+        <li data-i18n="c3">Member of the Corporation (IPC-AG Inc.)</li>
+        <li data-i18n="c4">Majority of Trustees must be residents of the Philippines</li>
+        <li data-i18n="c5">Not a part of IPC Pastoral Staff</li>
+        <li data-i18n="c6">To be of legal age or 21 years of age and above</li>
+        <li data-i18n="c7">Currently residing in Baguio at the time of the election</li>
+        <li data-i18n="c8">Physically fit to conduct duties of BOT</li>
       </ul>
     </div>
 
     <div class="card">
-      <h2>Nominees</h2>
+      <h2 data-i18n="nominees">Nominees</h2>
       <p class="counter" id="counter"></p>
       <div id="nominees"></div>
     </div>
 
     <div class="card cert">
-      <h2>Certification</h2>
-      <p>I, the undersigned, hereby certify that the vote submitted through this form is my own and has been cast willingly. I understand the importance of the democratic process and affirm that this vote reflects my genuine choice.</p>
-      <p>By submitting this form, I acknowledge the responsibility that comes with exercising my right to vote and affirm that no external influence has affected my decision.</p>
-      <label class="field">Please sign by putting your full name below. <span class="req">*</span>
+      <h2 data-i18n="certification">Certification</h2>
+      <p data-i18n="cert1">I, the undersigned, hereby certify that the vote submitted through this form is my own and has been cast willingly. I understand the importance of the democratic process and affirm that this vote reflects my genuine choice.</p>
+      <p data-i18n="cert2">By submitting this form, I acknowledge the responsibility that comes with exercising my right to vote and affirm that no external influence has affected my decision.</p>
+      <label class="field"><span data-i18n="sign">Please sign by putting your full name below.</span> <span class="req">*</span>
         <input type="text" name="signature" required autocomplete="off">
       </label>
     </div>
 
-    <button type="submit" id="submit">Submit ballot</button>
+    <button type="submit" id="submit" data-i18n="submit">Submit ballot</button>
   </form>
 </main>
 
@@ -144,16 +160,164 @@ const DEFAULT_PHOTO = 'data:image/svg+xml,' + encodeURIComponent(
   '<circle cx="32" cy="25" r="11" fill="#98a2b3"/><path d="M12 58c0-12 9-19 20-19s20 7 20 19z" fill="#98a2b3"/></svg>'
 );
 
+const I18N = {
+  en: {
+    title: 'IPC Board of Trustees Ballot 2026',
+    sub: 'One ballot per member. Your vote is final once submitted.',
+    loading: 'Loading ballot…',
+    voterDetails: 'Voter details',
+    fullName: 'Full name',
+    birthday: 'Birthday',
+    votingAs: 'I am voting as',
+    self: 'Myself',
+    proxy: 'Proxy for someone else',
+    proxyName: 'Full name of the person you are voting for',
+    proxyBirthday: 'Birthday of the person you are voting for',
+    searchName: 'Type to search your name…',
+    question: 'Who would you like to vote as Board of Trustees (BOT)?',
+    criteria: 'Criteria',
+    c1: 'Not convicted by final judgement of an offense punishable by imprisonment for a period exceeding six (6) years, or a violation of the corporate code of the Philippines',
+    c2: 'Registered member in IPC within six (6) years prior to the date of election',
+    c3: 'Member of the Corporation (IPC-AG Inc.)',
+    c4: 'Majority of Trustees must be residents of the Philippines',
+    c5: 'Not a part of IPC Pastoral Staff',
+    c6: 'To be of legal age or 21 years of age and above',
+    c7: 'Currently residing in Baguio at the time of the election',
+    c8: 'Physically fit to conduct duties of BOT',
+    nominees: 'Nominees',
+    counter: 'Select {min} to {max}. {n} selected.',
+    certification: 'Certification',
+    cert1: 'I, the undersigned, hereby certify that the vote submitted through this form is my own and has been cast willingly. I understand the importance of the democratic process and affirm that this vote reflects my genuine choice.',
+    cert2: 'By submitting this form, I acknowledge the responsibility that comes with exercising my right to vote and affirm that no external influence has affected my decision.',
+    sign: 'Please sign by putting your full name below.',
+    submit: 'Submit ballot',
+    submitting: 'Submitting…',
+    confirm: 'Submit your ballot?\n\n{who}You voted for:\n• {votes}\n\nThis cannot be changed.',
+    confirmProxy: 'Voting as proxy for: {name}\n\n',
+    thanks: 'Thank you! Your ballot has been recorded.',
+    loadFail: 'Could not load the ballot. Please refresh the page.',
+    network: 'Network error. Please check your connection and try again.',
+    failed: 'Submission failed.',
+    needNameBday: 'Please enter your full name and birthday.',
+    badBday: 'Please enter a valid birthday.',
+    needProxy: 'Please enter the full name of the person you are voting for.',
+    minVotes: 'Please select at least {min} nominee(s).',
+    needSig: 'Please sign by typing your full name.',
+    // Server error codes (err_<code>)
+    err_closed: 'Voting is closed.',
+    err_busy: 'The server is busy. Please try again.',
+    err_required: 'Please enter your full name and a valid birthday.',
+    err_proxy: 'Please enter the full name of the person you are voting for.',
+    err_count: 'Please select {min} to {max} nominees.',
+    err_invalid: 'Invalid selection. Please reload the page.',
+    err_signature: 'Your signature must match your full name.',
+    err_notMember: '{name} is not on the member list. Please choose a name from the list.',
+    err_duplicate: 'A ballot has already been submitted for {name}.',
+    err_server: 'Something went wrong. Please try again.',
+    err_proxyBday: 'Please enter a valid birthday for the person you are voting for.',
+    err_verify: "The name and birthday don't match our records for {name}.",
+    err_noBirthday: "We can't verify {name}. Please contact the election committee.",
+    err_locked: 'Too many incorrect attempts for {name}. Please contact the election committee.',
+  },
+  tl: {
+    title: 'Balota ng IPC Board of Trustees 2026',
+    sub: 'Isang balota bawat miyembro. Pinal na ang iyong boto kapag naisumite na.',
+    loading: 'Nilo-load ang balota…',
+    voterDetails: 'Impormasyon ng botante',
+    fullName: 'Buong pangalan',
+    birthday: 'Kaarawan',
+    votingAs: 'Ako ay bumoboto bilang',
+    self: 'Para sa sarili ko',
+    proxy: 'Proxy para sa ibang tao',
+    proxyName: 'Buong pangalan ng taong kinakatawan mo',
+    proxyBirthday: 'Kaarawan ng taong kinakatawan mo',
+    searchName: 'I-type para hanapin ang pangalan…',
+    question: 'Sino ang nais mong iboto bilang Board of Trustees (BOT)?',
+    criteria: 'Mga Pamantayan',
+    c1: 'Hindi nahatulan sa pinal na desisyon ng hukuman ng pagkakasalang may parusang pagkakakulong nang higit sa anim (6) na taon, o ng paglabag sa corporate code ng Pilipinas',
+    c2: 'Rehistradong miyembro ng IPC sa loob ng anim (6) na taon bago ang petsa ng halalan',
+    c3: 'Miyembro ng Korporasyon (IPC-AG Inc.)',
+    c4: 'Ang nakararami sa mga Trustee ay dapat residente ng Pilipinas',
+    c5: 'Hindi bahagi ng Pastoral Staff ng IPC',
+    c6: 'Nasa hustong gulang o 21 taong gulang pataas',
+    c7: 'Kasalukuyang naninirahan sa Baguio sa panahon ng halalan',
+    c8: 'May pisikal na kakayahang gampanan ang mga tungkulin ng BOT',
+    nominees: 'Mga Nominado',
+    counter: 'Pumili ng {min} hanggang {max}. {n} ang napili.',
+    certification: 'Sertipikasyon',
+    cert1: 'Ako, ang nakalagda sa ibaba, ay nagpapatunay na ang botong isinumite sa pamamagitan ng form na ito ay sarili kong boto at kusang-loob kong ibinigay. Nauunawaan ko ang kahalagahan ng demokratikong proseso at pinagtitibay ko na ang botong ito ay sumasalamin sa aking tunay na pinili.',
+    cert2: 'Sa pagsumite ng form na ito, kinikilala ko ang responsibilidad na kaakibat ng paggamit ng aking karapatang bumoto at pinagtitibay ko na walang panlabas na impluwensiyang nakaapekto sa aking desisyon.',
+    sign: 'Pakilagdaan sa pamamagitan ng pagsulat ng iyong buong pangalan sa ibaba.',
+    submit: 'Isumite ang balota',
+    submitting: 'Isinusumite…',
+    confirm: 'Isumite ang iyong balota?\n\n{who}Ang iyong mga ibinoto:\n• {votes}\n\nHindi na ito mababago.',
+    confirmProxy: 'Bumoboto bilang proxy para kay: {name}\n\n',
+    thanks: 'Salamat! Naitala na ang iyong balota.',
+    loadFail: 'Hindi ma-load ang balota. Paki-refresh ang page.',
+    network: 'May problema sa koneksyon. Pakisuri ang iyong internet at subukang muli.',
+    failed: 'Hindi naisumite ang balota.',
+    needNameBday: 'Pakilagay ang iyong buong pangalan at kaarawan.',
+    badBday: 'Pakilagay ang tamang kaarawan.',
+    needProxy: 'Pakilagay ang buong pangalan ng taong kinakatawan mo.',
+    minVotes: 'Pumili ng hindi bababa sa {min} nominado.',
+    needSig: 'Pakilagda sa pamamagitan ng pagsulat ng iyong buong pangalan.',
+    err_closed: 'Sarado na ang botohan.',
+    err_busy: 'Abala ang server. Pakisubukang muli.',
+    err_required: 'Pakilagay ang iyong buong pangalan at tamang kaarawan.',
+    err_proxy: 'Pakilagay ang buong pangalan ng taong kinakatawan mo.',
+    err_count: 'Pumili ng {min} hanggang {max} na nominado.',
+    err_invalid: 'Hindi wasto ang pagpili. Paki-reload ang page.',
+    err_signature: 'Dapat tumugma ang iyong lagda sa iyong buong pangalan.',
+    err_notMember: 'Si {name} ay wala sa listahan ng mga miyembro. Pumili ng pangalan mula sa listahan.',
+    err_duplicate: 'May naisumite nang balota para kay {name}.',
+    err_server: 'May nangyaring mali. Pakisubukang muli.',
+    err_proxyBday: 'Pakilagay ang tamang kaarawan ng taong kinakatawan mo.',
+    err_verify: 'Hindi tugma ang pangalan at kaarawan sa aming rekord para kay {name}.',
+    err_noBirthday: 'Hindi namin ma-verify si {name}. Pakikontak ang election committee.',
+    err_locked: 'Masyadong maraming maling pagsubok para kay {name}. Pakikontak ang election committee.',
+  },
+};
+
 const $ = (id) => document.getElementById(id);
 const form = $('ballot');
-const norm = (s) => s.trim().replace(/\s+/g, ' ').toLowerCase();
+// Name comparison key: ignores case, punctuation, and word order. Keep in sync with key() in Code.gs.
+const nameKey = (s) => s.toLowerCase().replace(/[^\p{L}\s]/gu, ' ').split(/\s+/).filter(Boolean).sort().join(' ');
+let members = new Set(); // name keys from the Voters sheet; empty = anyone can vote
 let cfg = { nominees: [], maxVotes: 1, minVotes: 1 };
+let lang = 'en';
+let lastMsg = null; // [key, type, params] so the message re-renders on language switch
+let submitting = false;
 
-function showMsg(text, type) {
+function t(key, p = {}) {
+  const s = I18N[lang][key] ?? I18N.en[key] ?? key;
+  return s.replace(/\{(\w+)\}/g, (_, k) => p[k] ?? '');
+}
+
+function setLang(l) {
+  lang = I18N[l] ? l : 'en';
+  try { localStorage.setItem('lang', lang); } catch (_) {}
+  document.documentElement.lang = lang;
+  document.title = t('title');
+  document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => { el.placeholder = t(el.dataset.i18nPh); });
+  document.querySelectorAll('[data-lang]').forEach(b => b.setAttribute('aria-pressed', b.dataset.lang === lang));
+  if (submitting) $('submit').textContent = t('submitting');
+  updateLimits();
+  if (lastMsg) renderMsg();
+}
+
+function showMsg(key, type, params) {
+  lastMsg = [key, type, params];
+  renderMsg();
+  $('msg').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function renderMsg() {
+  const [key, type, params] = lastMsg;
   const m = $('msg');
-  m.textContent = text;
+  // A key not in I18N is shown as-is (e.g. an untranslated server message)
+  m.textContent = t(key, params);
   m.className = 'msg ' + type;
-  m.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 function selected() {
@@ -162,7 +326,7 @@ function selected() {
 
 function updateLimits() {
   const n = selected().length;
-  $('counter').textContent = `Select ${cfg.minVotes} to ${cfg.maxVotes}. ${n} selected.`;
+  $('counter').textContent = t('counter', { min: cfg.minVotes, max: cfg.maxVotes, n });
   form.querySelectorAll('input[name=vote]').forEach(i => {
     i.disabled = !i.checked && n >= cfg.maxVotes;
   });
@@ -173,11 +337,11 @@ function isProxy() {
 }
 
 form.querySelectorAll('input[name=votingAs]').forEach(r => r.addEventListener('change', () => {
-  $('proxyField').classList.toggle('hidden', !isProxy());
+  $('proxyFields').classList.toggle('hidden', !isProxy());
 }));
 
-// Birthday can't be in the future
-form.birthday.max = new Date().toISOString().slice(0, 10);
+// Birthdays can't be in the future
+form.birthday.max = form.memberBirthday.max = new Date().toISOString().slice(0, 10);
 
 async function load() {
   try {
@@ -185,10 +349,14 @@ async function load() {
     cfg = await res.json();
   } catch (e) {
     $('loading').classList.add('hidden');
-    return showMsg('Could not load the ballot. Please refresh the page.', 'err');
+    return showMsg('loadFail', 'err');
   }
   $('loading').classList.add('hidden');
-  if (!cfg.open) return showMsg('Voting is closed.', 'err');
+  if (!cfg.open) return showMsg('err_closed', 'err');
+
+  const names = cfg.members || [];
+  members = new Set(names.map(nameKey));
+  $('members').replaceChildren(...names.map(n => new Option(n)));
 
   $('nominees').innerHTML = '';
   cfg.nominees.forEach(n => {
@@ -221,23 +389,28 @@ form.addEventListener('submit', async (ev) => {
     birthday: fd.get('birthday'),
     votingAs: isProxy() ? 'proxy' : 'self',
     proxyFor: isProxy() ? fd.get('proxyFor').trim() : '',
+    memberBirthday: isProxy() ? fd.get('memberBirthday') : '',
     signature: fd.get('signature').trim(),
     website: fd.get('website'),
     votes: selected(),
   };
 
-  if (!data.name || !data.birthday) return showMsg('Please enter your full name and birthday.', 'err');
-  if (!form.birthday.checkValidity()) return showMsg('Please enter a valid birthday.', 'err');
-  if (isProxy() && !data.proxyFor) return showMsg('Please enter the full name of the person you are voting for.', 'err');
-  if (data.votes.length < cfg.minVotes) return showMsg(`Please select at least ${cfg.minVotes} nominee(s).`, 'err');
-  if (!data.signature) return showMsg('Please sign by typing your full name.', 'err');
-  if (norm(data.signature) !== norm(data.name)) return showMsg('Your signature must match your full name.', 'err');
+  if (!data.name || !data.birthday) return showMsg('needNameBday', 'err');
+  if (!form.birthday.checkValidity()) return showMsg('badBday', 'err');
+  if (isProxy() && !data.proxyFor) return showMsg('needProxy', 'err');
+  if (isProxy() && (!data.memberBirthday || !form.memberBirthday.checkValidity())) return showMsg('err_proxyBday', 'err');
+  const member = isProxy() ? data.proxyFor : data.name;
+  if (members.size && !members.has(nameKey(member))) return showMsg('err_notMember', 'err', { name: member });
+  if (data.votes.length < cfg.minVotes) return showMsg('minVotes', 'err', { min: cfg.minVotes });
+  if (!data.signature) return showMsg('needSig', 'err');
+  if (nameKey(data.signature) !== nameKey(data.name)) return showMsg('err_signature', 'err');
 
-  const who = isProxy() ? `Voting as proxy for: ${data.proxyFor}\n\n` : '';
-  if (!confirm(`Submit your ballot?\n\n${who}You voted for:\n• ${data.votes.join('\n• ')}\n\nThis cannot be changed.`)) return;
+  const who = isProxy() ? t('confirmProxy', { name: data.proxyFor }) : '';
+  if (!confirm(t('confirm', { who, votes: data.votes.join('\n• ') }))) return;
 
   const btn = $('submit');
-  btn.disabled = true; btn.textContent = 'Submitting…';
+  submitting = true;
+  btn.disabled = true; btn.textContent = t('submitting');
   try {
     // text/plain avoids a CORS preflight, so we can read the JSON response
     const res = await fetch(SCRIPT_URL, {
@@ -248,17 +421,26 @@ form.addEventListener('submit', async (ev) => {
     const out = await res.json();
     if (out.ok) {
       form.classList.add('hidden');
-      showMsg('Thank you! Your ballot has been recorded.', 'ok');
+      showMsg('thanks', 'ok');
     } else {
-      showMsg(out.error || 'Submission failed.', 'err');
+      const key = out.code && I18N.en['err_' + out.code] ? 'err_' + out.code : (out.error || 'failed');
+      const name = isProxy() ? data.proxyFor : data.name;
+      showMsg(key, 'err', { name, min: cfg.minVotes, max: cfg.maxVotes });
     }
   } catch (e) {
-    showMsg('Network error. Please check your connection and try again.', 'err');
+    console.error(e);
+    showMsg('network', 'err');
   } finally {
-    btn.disabled = false; btn.textContent = 'Submit ballot';
+    submitting = false;
+    btn.disabled = false; btn.textContent = t('submit');
   }
 });
 
+document.querySelectorAll('[data-lang]').forEach(b => b.addEventListener('click', () => setLang(b.dataset.lang)));
+
+let saved = null;
+try { saved = localStorage.getItem('lang'); } catch (_) {}
+setLang(saved || (/^(tl|fil)\b/i.test(navigator.language) ? 'tl' : 'en'));
 load();
 </script>
 </body>
