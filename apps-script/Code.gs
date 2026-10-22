@@ -7,20 +7,24 @@
 
 // ===== SETTINGS =====
 // Finalize the nominee list BEFORE the first vote (the sheet headers are built from it).
+// photo: image URL, or a path relative to the ballot page (e.g. 'photos/juan.jpg').
+//        Leave '' to show the default blank-person image.
 const NOMINEES = [
-  'Nominee One',
-  'Nominee Two',
-  'Nominee Three',
-  'Nominee Four',
-  'Nominee Five',
+  { name: 'Nominee One', photo: '' },
+  { name: 'Nominee Two', photo: '' },
+  { name: 'Nominee Three', photo: '' },
+  { name: 'Nominee Four', photo: '' },
+  { name: 'Nominee Five', photo: '' },
 ];
-const MAX_VOTES = 3;        // max nominees a voter may check
-const MIN_VOTES = 1;        // min nominees a voter must check
-const VOTING_OPEN = true;   // set false (and redeploy) to close voting
+const MAX_VOTES = NOMINEES.length; // max nominees a voter may check
+const MIN_VOTES = 1;               // min nominees a voter must check
+const VOTING_OPEN = true;          // set false (and redeploy) to close voting
 
 const BALLOT_SHEET = 'Ballots';
-const VOTERS_SHEET = 'Voters'; // optional: list allowed emails in column A. If this sheet is missing or empty, anyone can vote.
+const VOTERS_SHEET = 'Voters'; // optional: list eligible members' full names in column A. If this sheet is missing or empty, anyone can vote.
 // ====================
+
+const NOMINEE_NAMES = NOMINEES.map(n => n.name);
 
 function doGet() {
   return json({
@@ -47,51 +51,63 @@ function doPost(e) {
     // Honeypot: bots fill hidden fields. Pretend success, store nothing.
     if (d.website) return json({ ok: true });
 
-    const name = String(d.name || '').trim();
-    const email = String(d.email || '').trim().toLowerCase();
-    const phone = String(d.phone || '').trim();
+    const name = clean(d.name);
+    const birthday = String(d.birthday || '').trim();
+    const proxy = d.votingAs === 'proxy';
+    const proxyFor = proxy ? clean(d.proxyFor) : '';
+    const signature = clean(d.signature);
     const votes = Array.isArray(d.votes) ? [...new Set(d.votes.map(String))] : [];
 
-    if (!name || !phone || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
-      return json({ ok: false, error: 'Please complete all required fields.' });
+    if (!name || !validBirthday(birthday)) {
+      return json({ ok: false, error: 'Please enter your full name and a valid birthday.' });
+    }
+    if (proxy && !proxyFor) {
+      return json({ ok: false, error: 'Please enter the full name of the person you are voting for.' });
     }
     if (votes.length < MIN_VOTES || votes.length > MAX_VOTES) {
       return json({ ok: false, error: `Please select ${MIN_VOTES} to ${MAX_VOTES} nominees.` });
     }
-    if (votes.some(v => !NOMINEES.includes(v))) {
+    if (votes.some(v => !NOMINEE_NAMES.includes(v))) {
       return json({ ok: false, error: 'Invalid selection. Please reload the page.' });
     }
+    if (key(signature) !== key(name)) {
+      return json({ ok: false, error: 'Your signature must match your full name.' });
+    }
 
+    // The member this ballot counts for: the voter, or the person they are a proxy for
+    const member = key(proxy ? proxyFor : name);
     const ss = SpreadsheetApp.getActiveSpreadsheet();
 
-    // Optional voter allowlist
+    // Optional member allowlist
     const voters = ss.getSheetByName(VOTERS_SHEET);
     if (voters && voters.getLastRow() > 0) {
-      const allowed = voters.getRange(1, 1, voters.getLastRow(), 1).getValues()
-        .flat().map(v => String(v).trim().toLowerCase());
-      if (!allowed.includes(email)) {
-        return json({ ok: false, error: 'This email is not on the voter list.' });
+      const allowed = voters.getRange(1, 1, voters.getLastRow(), 1).getValues().flat().map(key);
+      if (!allowed.includes(member)) {
+        return json({ ok: false, error: `${proxy ? proxyFor : name} is not on the member list.` });
       }
     }
 
-    // One ballot per email
+    // One ballot per member
     const sheet = getBallotSheet(ss);
     const last = sheet.getLastRow();
     if (last > 1) {
-      const used = sheet.getRange(2, 3, last - 1, 1).getValues()
-        .flat().map(v => String(v).trim().toLowerCase());
-      if (used.includes(email)) {
-        return json({ ok: false, error: 'A ballot has already been submitted with this email.' });
+      // Columns B..E: Voter Name | Birthday | Voting As | Proxy For
+      const used = sheet.getRange(2, 2, last - 1, 4).getValues()
+        .map(r => key(r[2] === 'Proxy' ? r[3] : r[0]));
+      if (used.includes(member)) {
+        return json({ ok: false, error: `A ballot has already been submitted for ${proxy ? proxyFor : name}.` });
       }
     }
 
-    // Row: Timestamp | Name | Email | Phone | one column per nominee (1 = voted)
+    // Row: Timestamp | Voter Name | Birthday | Voting As | Proxy For | Signature | one column per nominee (1 = voted)
     sheet.appendRow([
       new Date(),
       name,
-      email,
-      "'" + phone, // keep leading 0 (e.g. 09xx) as text
-      ...NOMINEES.map(n => (votes.includes(n) ? 1 : '')),
+      "'" + birthday, // keep as text (YYYY-MM-DD)
+      proxy ? 'Proxy' : 'Self',
+      proxyFor,
+      signature,
+      ...NOMINEE_NAMES.map(n => (votes.includes(n) ? 1 : '')),
     ]);
 
     return json({ ok: true });
@@ -107,10 +123,26 @@ function getBallotSheet(ss) {
   let sh = ss.getSheetByName(BALLOT_SHEET);
   if (!sh) sh = ss.insertSheet(BALLOT_SHEET);
   if (sh.getLastRow() === 0) {
-    sh.appendRow(['Timestamp', 'Name', 'Email', 'Phone', ...NOMINEES]);
+    sh.appendRow(['Timestamp', 'Voter Name', 'Birthday', 'Voting As', 'Proxy For', 'Signature', ...NOMINEE_NAMES]);
     sh.setFrozenRows(1);
   }
   return sh;
+}
+
+// Trim and collapse internal whitespace
+function clean(s) {
+  return String(s || '').trim().replace(/\s+/g, ' ');
+}
+
+// Comparison key for names: case- and spacing-insensitive
+function key(s) {
+  return clean(s).toLowerCase();
+}
+
+function validBirthday(s) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
+  const t = new Date(s + 'T00:00:00Z').getTime();
+  return !isNaN(t) && t < Date.now() && s >= '1900-01-01';
 }
 
 function json(obj) {

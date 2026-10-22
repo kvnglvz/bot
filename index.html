@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Board of Trustees Election 2026</title>
+  <title>IPC Board of Trustees Ballot 2026</title>
   <style>
     :root {
       --bg: #f6f7f9; --card: #fff; --text: #1d2330; --muted: #667085;
@@ -14,47 +14,67 @@
     body {
       margin: 0; background: var(--bg); color: var(--text);
       font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      -webkit-text-size-adjust: 100%;
     }
-    main { max-width: 560px; margin: 0 auto; padding: 32px 16px 64px; }
-    h1 { font-size: 1.5rem; margin: 0 0 4px; }
-    .sub { color: var(--muted); margin: 0 0 24px; }
+    main { max-width: 560px; margin: 0 auto; padding: 24px 14px 64px; }
+    h1 { font-size: 1.4rem; line-height: 1.25; margin: 0 0 4px; }
+    .sub { color: var(--muted); margin: 0 0 20px; }
     .card {
       background: var(--card); border: 1px solid var(--line);
-      border-radius: 12px; padding: 20px; margin-bottom: 16px;
+      border-radius: 12px; padding: 18px; margin-bottom: 14px;
     }
-    .card h2 { font-size: 1rem; margin: 0 0 12px; }
-    label.field { display: block; margin-bottom: 14px; font-weight: 500; }
-    label.field span { color: var(--err); }
-    input[type=text], input[type=email], input[type=tel] {
-      display: block; width: 100%; margin-top: 6px; padding: 10px 12px;
-      font: inherit; border: 1px solid var(--line); border-radius: 8px;
+    .card h2 { font-size: 1.05rem; margin: 0 0 12px; }
+    .card p { margin: 0 0 12px; }
+    label.field, fieldset.field { display: block; margin: 0 0 16px; font-weight: 500; }
+    fieldset.field { border: 0; padding: 0; }
+    fieldset.field legend { padding: 0; margin-bottom: 6px; }
+    .req { color: var(--err); }
+    input[type=text], input[type=date] {
+      display: block; width: 100%; margin-top: 6px; padding: 11px 12px;
+      font: inherit; color: inherit; background: #fff;
+      border: 1px solid var(--line); border-radius: 8px; min-height: 46px;
     }
     input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
-    .counter { color: var(--muted); font-size: .9rem; margin: -6px 0 12px; }
-    .nominee {
-      display: flex; align-items: center; gap: 12px; padding: 12px;
+    .choice {
+      display: flex; align-items: center; gap: 10px; padding: 11px 12px;
       border: 1px solid var(--line); border-radius: 8px; margin-bottom: 8px;
-      cursor: pointer; user-select: none;
+      font-weight: 400; cursor: pointer;
+    }
+    .choice:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+    .choice input { width: 20px; height: 20px; margin: 0; accent-color: var(--accent); flex: none; }
+    .criteria { margin: 0; padding-left: 20px; color: #344054; font-size: .95rem; }
+    .criteria li { margin-bottom: 6px; }
+    .counter { color: var(--muted); font-size: .9rem; margin: 0 0 12px; }
+    .nominee {
+      display: flex; align-items: center; gap: 12px; padding: 10px 12px;
+      border: 1px solid var(--line); border-radius: 10px; margin-bottom: 8px;
+      cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent;
     }
     .nominee:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
     .nominee:has(input:disabled) { opacity: .5; cursor: not-allowed; }
-    .nominee input { width: 18px; height: 18px; accent-color: var(--accent); }
+    .nominee input { width: 22px; height: 22px; margin: 0; accent-color: var(--accent); flex: none; }
+    .nominee img {
+      width: 56px; height: 56px; border-radius: 50%; object-fit: cover;
+      background: #eef0f3; flex: none;
+    }
+    .nominee span { font-weight: 500; }
+    .cert p { font-size: .95rem; color: #344054; }
     .hp { position: absolute; left: -9999px; }
     button {
-      width: 100%; padding: 12px; font: inherit; font-weight: 600;
-      color: #fff; background: var(--accent); border: 0; border-radius: 8px; cursor: pointer;
+      width: 100%; padding: 14px; font: inherit; font-weight: 600;
+      color: #fff; background: var(--accent); border: 0; border-radius: 10px; cursor: pointer;
     }
     button:disabled { opacity: .6; cursor: wait; }
     .msg { padding: 12px 14px; border-radius: 8px; margin-bottom: 16px; }
     .msg.err { background: #fef3f2; color: var(--err); }
     .msg.ok { background: #ecfdf3; color: var(--ok); }
-    .hidden { display: none; }
+    .hidden { display: none !important; }
   </style>
 </head>
 <body>
 <main>
-  <h1>Board of Trustees Election 2026</h1>
-  <p class="sub">One ballot per person. Your vote is final once submitted.</p>
+  <h1>IPC Board of Trustees Ballot 2026</h1>
+  <p class="sub">One ballot per member. Your vote is final once submitted.</p>
 
   <div id="msg" class="msg hidden"></div>
   <p id="loading" class="sub">Loading ballot…</p>
@@ -62,23 +82,52 @@
   <form id="ballot" class="hidden" novalidate>
     <div class="card">
       <h2>Voter details</h2>
-      <label class="field">Full name <span>*</span>
+      <label class="field">Full name <span class="req">*</span>
         <input type="text" name="name" required autocomplete="name">
       </label>
-      <label class="field">Email <span>*</span>
-        <input type="email" name="email" required autocomplete="email">
+      <label class="field">Birthday <span class="req">*</span>
+        <input type="date" name="birthday" required autocomplete="bday">
       </label>
-      <label class="field">Phone number <span>*</span>
-        <input type="tel" name="phone" required autocomplete="tel" placeholder="09XX XXX XXXX">
+      <fieldset class="field">
+        <legend>I am voting as <span class="req">*</span></legend>
+        <label class="choice"><input type="radio" name="votingAs" value="self" checked> Myself</label>
+        <label class="choice"><input type="radio" name="votingAs" value="proxy"> Proxy for someone else</label>
+      </fieldset>
+      <label class="field hidden" id="proxyField">Full name of the person you are voting for <span class="req">*</span>
+        <input type="text" name="proxyFor" autocomplete="off">
       </label>
       <!-- honeypot: leave empty -->
       <input class="hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
     </div>
 
     <div class="card">
+      <h2>Who would you like to vote as Board of Trustees (BOT)?</h2>
+      <p><strong>Criteria</strong></p>
+      <ul class="criteria">
+        <li>Not convicted by final judgement of an offense punishable by imprisonment for a period exceeding six (6) years, or a violation of the corporate code of the Philippines</li>
+        <li>Registered member in IPC within six (6) years prior to the date of election</li>
+        <li>Member of the Corporation (IPC-AG Inc.)</li>
+        <li>Majority of Trustees must be residents of the Philippines</li>
+        <li>Not a part of IPC Pastoral Staff</li>
+        <li>To be of legal age or 21 years of age and above</li>
+        <li>Currently residing in Baguio at the time of the election</li>
+        <li>Physically fit to conduct duties of BOT</li>
+      </ul>
+    </div>
+
+    <div class="card">
       <h2>Nominees</h2>
       <p class="counter" id="counter"></p>
       <div id="nominees"></div>
+    </div>
+
+    <div class="card cert">
+      <h2>Certification</h2>
+      <p>I, the undersigned, hereby certify that the vote submitted through this form is my own and has been cast willingly. I understand the importance of the democratic process and affirm that this vote reflects my genuine choice.</p>
+      <p>By submitting this form, I acknowledge the responsibility that comes with exercising my right to vote and affirm that no external influence has affected my decision.</p>
+      <label class="field">Please sign by putting your full name below. <span class="req">*</span>
+        <input type="text" name="signature" required autocomplete="off">
+      </label>
     </div>
 
     <button type="submit" id="submit">Submit ballot</button>
@@ -89,8 +138,15 @@
 // Paste your Apps Script web app /exec URL here
 const SCRIPT_URL = 'https://script.google.com/macros/s/XXXXXXXX/exec';
 
+// Blank person silhouette, used when a nominee has no photo or it fails to load
+const DEFAULT_PHOTO = 'data:image/svg+xml,' + encodeURIComponent(
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" fill="#e4e7ec"/>' +
+  '<circle cx="32" cy="25" r="11" fill="#98a2b3"/><path d="M12 58c0-12 9-19 20-19s20 7 20 19z" fill="#98a2b3"/></svg>'
+);
+
 const $ = (id) => document.getElementById(id);
 const form = $('ballot');
+const norm = (s) => s.trim().replace(/\s+/g, ' ').toLowerCase();
 let cfg = { nominees: [], maxVotes: 1, minVotes: 1 };
 
 function showMsg(text, type) {
@@ -106,11 +162,22 @@ function selected() {
 
 function updateLimits() {
   const n = selected().length;
-  $('counter').textContent = `Select up to ${cfg.maxVotes} — ${n} selected`;
+  $('counter').textContent = `Select ${cfg.minVotes} to ${cfg.maxVotes}. ${n} selected.`;
   form.querySelectorAll('input[name=vote]').forEach(i => {
     i.disabled = !i.checked && n >= cfg.maxVotes;
   });
 }
+
+function isProxy() {
+  return form.votingAs.value === 'proxy';
+}
+
+form.querySelectorAll('input[name=votingAs]').forEach(r => r.addEventListener('change', () => {
+  $('proxyField').classList.toggle('hidden', !isProxy());
+}));
+
+// Birthday can't be in the future
+form.birthday.max = new Date().toISOString().slice(0, 10);
 
 async function load() {
   try {
@@ -124,13 +191,20 @@ async function load() {
   if (!cfg.open) return showMsg('Voting is closed.', 'err');
 
   $('nominees').innerHTML = '';
-  cfg.nominees.forEach(name => {
+  cfg.nominees.forEach(n => {
     const label = document.createElement('label');
     label.className = 'nominee';
     const cb = document.createElement('input');
-    cb.type = 'checkbox'; cb.name = 'vote'; cb.value = name;
+    cb.type = 'checkbox'; cb.name = 'vote'; cb.value = n.name;
     cb.addEventListener('change', updateLimits);
-    label.append(cb, document.createTextNode(name));
+    const img = document.createElement('img');
+    img.alt = ''; img.width = 56; img.height = 56;
+    img.loading = 'lazy'; img.decoding = 'async';
+    img.onerror = () => { img.onerror = null; img.src = DEFAULT_PHOTO; };
+    img.src = n.photo || DEFAULT_PHOTO;
+    const name = document.createElement('span');
+    name.textContent = n.name;
+    label.append(cb, img, name);
     $('nominees').append(label);
   });
   updateLimits();
@@ -144,17 +218,23 @@ form.addEventListener('submit', async (ev) => {
   const fd = new FormData(form);
   const data = {
     name: fd.get('name').trim(),
-    email: fd.get('email').trim(),
-    phone: fd.get('phone').trim(),
+    birthday: fd.get('birthday'),
+    votingAs: isProxy() ? 'proxy' : 'self',
+    proxyFor: isProxy() ? fd.get('proxyFor').trim() : '',
+    signature: fd.get('signature').trim(),
     website: fd.get('website'),
     votes: selected(),
   };
 
-  if (!data.name || !data.email || !data.phone) return showMsg('Please complete all required fields.', 'err');
-  if (!form.email.checkValidity()) return showMsg('Please enter a valid email.', 'err');
+  if (!data.name || !data.birthday) return showMsg('Please enter your full name and birthday.', 'err');
+  if (!form.birthday.checkValidity()) return showMsg('Please enter a valid birthday.', 'err');
+  if (isProxy() && !data.proxyFor) return showMsg('Please enter the full name of the person you are voting for.', 'err');
   if (data.votes.length < cfg.minVotes) return showMsg(`Please select at least ${cfg.minVotes} nominee(s).`, 'err');
+  if (!data.signature) return showMsg('Please sign by typing your full name.', 'err');
+  if (norm(data.signature) !== norm(data.name)) return showMsg('Your signature must match your full name.', 'err');
 
-  if (!confirm(`Submit your ballot?\n\nYou voted for:\n• ${data.votes.join('\n• ')}\n\nThis cannot be changed.`)) return;
+  const who = isProxy() ? `Voting as proxy for: ${data.proxyFor}\n\n` : '';
+  if (!confirm(`Submit your ballot?\n\n${who}You voted for:\n• ${data.votes.join('\n• ')}\n\nThis cannot be changed.`)) return;
 
   const btn = $('submit');
   btn.disabled = true; btn.textContent = 'Submitting…';
