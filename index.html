@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Board of Trustees Election 2026</title>
+  <style>
+    :root {
+      --bg: #f6f7f9; --card: #fff; --text: #1d2330; --muted: #667085;
+      --line: #e3e6eb; --accent: #2457d6; --accent-soft: #e8eefc;
+      --ok: #157f3b; --err: #b42318;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: var(--bg); color: var(--text);
+      font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+    main { max-width: 560px; margin: 0 auto; padding: 32px 16px 64px; }
+    h1 { font-size: 1.5rem; margin: 0 0 4px; }
+    .sub { color: var(--muted); margin: 0 0 24px; }
+    .card {
+      background: var(--card); border: 1px solid var(--line);
+      border-radius: 12px; padding: 20px; margin-bottom: 16px;
+    }
+    .card h2 { font-size: 1rem; margin: 0 0 12px; }
+    label.field { display: block; margin-bottom: 14px; font-weight: 500; }
+    label.field span { color: var(--err); }
+    input[type=text], input[type=email], input[type=tel] {
+      display: block; width: 100%; margin-top: 6px; padding: 10px 12px;
+      font: inherit; border: 1px solid var(--line); border-radius: 8px;
+    }
+    input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+    .counter { color: var(--muted); font-size: .9rem; margin: -6px 0 12px; }
+    .nominee {
+      display: flex; align-items: center; gap: 12px; padding: 12px;
+      border: 1px solid var(--line); border-radius: 8px; margin-bottom: 8px;
+      cursor: pointer; user-select: none;
+    }
+    .nominee:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+    .nominee:has(input:disabled) { opacity: .5; cursor: not-allowed; }
+    .nominee input { width: 18px; height: 18px; accent-color: var(--accent); }
+    .hp { position: absolute; left: -9999px; }
+    button {
+      width: 100%; padding: 12px; font: inherit; font-weight: 600;
+      color: #fff; background: var(--accent); border: 0; border-radius: 8px; cursor: pointer;
+    }
+    button:disabled { opacity: .6; cursor: wait; }
+    .msg { padding: 12px 14px; border-radius: 8px; margin-bottom: 16px; }
+    .msg.err { background: #fef3f2; color: var(--err); }
+    .msg.ok { background: #ecfdf3; color: var(--ok); }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Board of Trustees Election 2026</h1>
+  <p class="sub">One ballot per person. Your vote is final once submitted.</p>
+
+  <div id="msg" class="msg hidden"></div>
+  <p id="loading" class="sub">Loading ballot…</p>
+
+  <form id="ballot" class="hidden" novalidate>
+    <div class="card">
+      <h2>Voter details</h2>
+      <label class="field">Full name <span>*</span>
+        <input type="text" name="name" required autocomplete="name">
+      </label>
+      <label class="field">Email <span>*</span>
+        <input type="email" name="email" required autocomplete="email">
+      </label>
+      <label class="field">Phone number <span>*</span>
+        <input type="tel" name="phone" required autocomplete="tel" placeholder="09XX XXX XXXX">
+      </label>
+      <!-- honeypot: leave empty -->
+      <input class="hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+    </div>
+
+    <div class="card">
+      <h2>Nominees</h2>
+      <p class="counter" id="counter"></p>
+      <div id="nominees"></div>
+    </div>
+
+    <button type="submit" id="submit">Submit ballot</button>
+  </form>
+</main>
+
+<script>
+// Paste your Apps Script web app /exec URL here
+const SCRIPT_URL = 'https://script.google.com/macros/s/XXXXXXXX/exec';
+
+const $ = (id) => document.getElementById(id);
+const form = $('ballot');
+let cfg = { nominees: [], maxVotes: 1, minVotes: 1 };
+
+function showMsg(text, type) {
+  const m = $('msg');
+  m.textContent = text;
+  m.className = 'msg ' + type;
+  m.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function selected() {
+  return [...form.querySelectorAll('input[name=vote]:checked')].map(i => i.value);
+}
+
+function updateLimits() {
+  const n = selected().length;
+  $('counter').textContent = `Select up to ${cfg.maxVotes} — ${n} selected`;
+  form.querySelectorAll('input[name=vote]').forEach(i => {
+    i.disabled = !i.checked && n >= cfg.maxVotes;
+  });
+}
+
+async function load() {
+  try {
+    const res = await fetch(SCRIPT_URL);
+    cfg = await res.json();
+  } catch (e) {
+    $('loading').classList.add('hidden');
+    return showMsg('Could not load the ballot. Please refresh the page.', 'err');
+  }
+  $('loading').classList.add('hidden');
+  if (!cfg.open) return showMsg('Voting is closed.', 'err');
+
+  $('nominees').innerHTML = '';
+  cfg.nominees.forEach(name => {
+    const label = document.createElement('label');
+    label.className = 'nominee';
+    const cb = document.createElement('input');
+    cb.type = 'checkbox'; cb.name = 'vote'; cb.value = name;
+    cb.addEventListener('change', updateLimits);
+    label.append(cb, document.createTextNode(name));
+    $('nominees').append(label);
+  });
+  updateLimits();
+  form.classList.remove('hidden');
+}
+
+form.addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  $('msg').className = 'msg hidden';
+
+  const fd = new FormData(form);
+  const data = {
+    name: fd.get('name').trim(),
+    email: fd.get('email').trim(),
+    phone: fd.get('phone').trim(),
+    website: fd.get('website'),
+    votes: selected(),
+  };
+
+  if (!data.name || !data.email || !data.phone) return showMsg('Please complete all required fields.', 'err');
+  if (!form.email.checkValidity()) return showMsg('Please enter a valid email.', 'err');
+  if (data.votes.length < cfg.minVotes) return showMsg(`Please select at least ${cfg.minVotes} nominee(s).`, 'err');
+
+  if (!confirm(`Submit your ballot?\n\nYou voted for:\n• ${data.votes.join('\n• ')}\n\nThis cannot be changed.`)) return;
+
+  const btn = $('submit');
+  btn.disabled = true; btn.textContent = 'Submitting…';
+  try {
+    // text/plain avoids a CORS preflight, so we can read the JSON response
+    const res = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(data),
+    });
+    const out = await res.json();
+    if (out.ok) {
+      form.classList.add('hidden');
+      showMsg('Thank you! Your ballot has been recorded.', 'ok');
+    } else {
+      showMsg(out.error || 'Submission failed.', 'err');
+    }
+  } catch (e) {
+    showMsg('Network error. Please check your connection and try again.', 'err');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Submit ballot';
+  }
+});
+
+load();
+</script>
+</body>
+</html>
