@@ -6,7 +6,7 @@ Static ballot form (GitHub Pages) that submits to a Google Sheet via a Google Ap
 
 - `index.html` — the ballot page (served by GitHub Pages)
 - `apps-script/Code.gs` — backend; paste into the Sheet's **Extensions → Apps Script**
-- `photos/` (optional) — nominee photos, referenced from `NOMINEES` as `photos/<file>.jpg`
+- `photos/` — nominee photos, referenced from `NOMINEES` as `photos/<file>.webp`
 
 ## Setup
 
@@ -19,8 +19,8 @@ Photos: keep them small (about 200×200 px, under 30 KB each) so the page loads 
 
 ## Running the election
 
-- One ballot per member is enforced server-side, keyed by name (case/spacing-insensitive): the voter's own name, or the name of the person they are a proxy for.
+- One ballot per member is enforced server-side, keyed by name (case, punctuation, and word order are ignored): the voter's own name, or the name of the person they are a proxy for.
 - The signature must match the voter's full name.
-- Optional allowlist: add a `Voters` sheet with eligible members' full names in column A.
+- Optional allowlist: add a `Voters` sheet with eligible members' full names in column A (no header). The names also appear as suggestions on the form.
 - Close voting: set `VOTING_OPEN = false` and deploy a new version.
-- Tally: `=SUM(G2:G)` (etc.) under each nominee column in the `Ballots` sheet.
+- Tally: `=SUM(F2:F)` (etc.) under each nominee column in the `Ballots` sheet.

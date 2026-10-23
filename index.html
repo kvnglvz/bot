@@ -29,7 +29,7 @@
     fieldset.field { border: 0; padding: 0; }
     fieldset.field legend { padding: 0; margin-bottom: 6px; }
     .req { color: var(--err); }
-    input[type=text], input[type=date] {
+    input[type=text] {
       display: block; width: 100%; margin-top: 6px; padding: 11px 12px;
       font: inherit; color: inherit; background: #fff;
       border: 1px solid var(--line); border-radius: 8px; min-height: 46px;
@@ -96,22 +96,14 @@
       <label class="field"><span data-i18n="fullName">Full name</span> <span class="req">*</span>
         <input type="text" name="name" required autocomplete="off" list="members" data-i18n-ph="searchName">
       </label>
-      <label class="field"><span data-i18n="birthday">Birthday</span> <span class="req">*</span>
-        <input type="date" name="birthday" required autocomplete="bday">
-      </label>
       <fieldset class="field">
         <legend><span data-i18n="votingAs">I am voting as</span> <span class="req">*</span></legend>
         <label class="choice"><input type="radio" name="votingAs" value="self" checked> <span data-i18n="self">Myself</span></label>
         <label class="choice"><input type="radio" name="votingAs" value="proxy"> <span data-i18n="proxy">Proxy for someone else</span></label>
       </fieldset>
-      <div class="hidden" id="proxyFields">
-        <label class="field"><span data-i18n="proxyName">Full name of the person you are voting for</span> <span class="req">*</span>
-          <input type="text" name="proxyFor" autocomplete="off" list="members" data-i18n-ph="searchName">
-        </label>
-        <label class="field"><span data-i18n="proxyBirthday">Birthday of the person you are voting for</span> <span class="req">*</span>
-          <input type="date" name="memberBirthday" autocomplete="off">
-        </label>
-      </div>
+      <label class="field hidden" id="proxyField"><span data-i18n="proxyName">Full name of the person you are voting for</span> <span class="req">*</span>
+        <input type="text" name="proxyFor" autocomplete="off" list="members" data-i18n-ph="searchName">
+      </label>
       <datalist id="members"></datalist>
       <!-- honeypot: leave empty -->
       <input class="hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
@@ -177,12 +169,10 @@ const I18N = {
     loading: 'Loading ballot…',
     voterDetails: 'Voter details',
     fullName: 'Full name',
-    birthday: 'Birthday',
     votingAs: 'I am voting as',
     self: 'Myself',
     proxy: 'Proxy for someone else',
     proxyName: 'Full name of the person you are voting for',
-    proxyBirthday: 'Birthday of the person you are voting for',
     searchName: 'Type to search your name…',
     question: 'Who would you like to vote as Board of Trustees (BOT)?',
     criteria: 'Criteria',
@@ -214,15 +204,13 @@ const I18N = {
     loadFail: 'Could not load the ballot. Please refresh the page.',
     network: 'Network error. Please check your connection and try again.',
     failed: 'Submission failed.',
-    needNameBday: 'Please enter your full name and birthday.',
-    badBday: 'Please enter a valid birthday.',
     needProxy: 'Please enter the full name of the person you are voting for.',
     minVotes: 'Please select at least {min} nominee(s).',
     needSig: 'Please sign by typing your full name.',
     // Server error codes (err_<code>)
     err_closed: 'Voting is closed.',
     err_busy: 'The server is busy. Please try again.',
-    err_required: 'Please enter your full name and a valid birthday.',
+    err_required: 'Please enter your full name.',
     err_proxy: 'Please enter the full name of the person you are voting for.',
     err_count: 'Please select {min} to {max} nominees.',
     err_invalid: 'Invalid selection. Please reload the page.',
@@ -230,10 +218,6 @@ const I18N = {
     err_notMember: '{name} is not on the member list. Please choose a name from the list.',
     err_duplicate: 'A ballot has already been submitted for {name}.',
     err_server: 'Something went wrong. Please try again.',
-    err_proxyBday: 'Please enter a valid birthday for the person you are voting for.',
-    err_verify: "The name and birthday don't match our records for {name}.",
-    err_noBirthday: "We can't verify {name}. Please contact the election committee.",
-    err_locked: 'Too many incorrect attempts for {name}. Please contact the election committee.',
   },
   tl: {
     title: 'Balota ng IPC Board of Trustees 2026',
@@ -241,12 +225,10 @@ const I18N = {
     loading: 'Nilo-load ang balota…',
     voterDetails: 'Impormasyon ng botante',
     fullName: 'Buong pangalan',
-    birthday: 'Kaarawan',
     votingAs: 'Ako ay bumoboto bilang',
     self: 'Para sa sarili ko',
     proxy: 'Proxy para sa ibang tao',
     proxyName: 'Buong pangalan ng taong kinakatawan mo',
-    proxyBirthday: 'Kaarawan ng taong kinakatawan mo',
     searchName: 'I-type para hanapin ang pangalan…',
     question: 'Sino ang nais mong iboto bilang Board of Trustees (BOT)?',
     criteria: 'Mga Pamantayan',
@@ -278,14 +260,12 @@ const I18N = {
     loadFail: 'Hindi ma-load ang balota. Paki-refresh ang page.',
     network: 'May problema sa koneksyon. Pakisuri ang iyong internet at subukang muli.',
     failed: 'Hindi naisumite ang balota.',
-    needNameBday: 'Pakilagay ang iyong buong pangalan at kaarawan.',
-    badBday: 'Pakilagay ang tamang kaarawan.',
     needProxy: 'Pakilagay ang buong pangalan ng taong kinakatawan mo.',
     minVotes: 'Pumili ng hindi bababa sa {min} nominado.',
     needSig: 'Pakilagda sa pamamagitan ng pagsulat ng iyong buong pangalan.',
     err_closed: 'Sarado na ang botohan.',
     err_busy: 'Abala ang server. Pakisubukang muli.',
-    err_required: 'Pakilagay ang iyong buong pangalan at tamang kaarawan.',
+    err_required: 'Pakilagay ang iyong buong pangalan.',
     err_proxy: 'Pakilagay ang buong pangalan ng taong kinakatawan mo.',
     err_count: 'Pumili ng {min} hanggang {max} na nominado.',
     err_invalid: 'Hindi wasto ang pagpili. Paki-reload ang page.',
@@ -293,10 +273,6 @@ const I18N = {
     err_notMember: 'Si {name} ay wala sa listahan ng mga miyembro. Pumili ng pangalan mula sa listahan.',
     err_duplicate: 'May naisumite nang balota para kay {name}.',
     err_server: 'May nangyaring mali. Pakisubukang muli.',
-    err_proxyBday: 'Pakilagay ang tamang kaarawan ng taong kinakatawan mo.',
-    err_verify: 'Hindi tugma ang pangalan at kaarawan sa aming rekord para kay {name}.',
-    err_noBirthday: 'Hindi namin ma-verify si {name}. Pakikontak ang election committee.',
-    err_locked: 'Masyadong maraming maling pagsubok para kay {name}. Pakikontak ang election committee.',
   },
 };
 
@@ -359,11 +335,8 @@ function isProxy() {
 }
 
 form.querySelectorAll('input[name=votingAs]').forEach(r => r.addEventListener('change', () => {
-  $('proxyFields').classList.toggle('hidden', !isProxy());
+  $('proxyField').classList.toggle('hidden', !isProxy());
 }));
-
-// Birthdays can't be in the future
-form.birthday.max = form.memberBirthday.max = new Date().toISOString().slice(0, 10);
 
 async function load() {
   try {
@@ -408,19 +381,15 @@ form.addEventListener('submit', async (ev) => {
   const fd = new FormData(form);
   const data = {
     name: fd.get('name').trim(),
-    birthday: fd.get('birthday'),
     votingAs: isProxy() ? 'proxy' : 'self',
     proxyFor: isProxy() ? fd.get('proxyFor').trim() : '',
-    memberBirthday: isProxy() ? fd.get('memberBirthday') : '',
     signature: fd.get('signature').trim(),
     website: fd.get('website'),
     votes: selected(),
   };
 
-  if (!data.name || !data.birthday) return showMsg('needNameBday', 'err');
-  if (!form.birthday.checkValidity()) return showMsg('badBday', 'err');
+  if (!data.name) return showMsg('err_required', 'err');
   if (isProxy() && !data.proxyFor) return showMsg('needProxy', 'err');
-  if (isProxy() && (!data.memberBirthday || !form.memberBirthday.checkValidity())) return showMsg('err_proxyBday', 'err');
   const member = isProxy() ? data.proxyFor : data.name;
   if (members.size && !members.has(nameKey(member))) return showMsg('err_notMember', 'err', { name: member });
   if (data.votes.length < cfg.minVotes) return showMsg('minVotes', 'err', { min: cfg.minVotes });
