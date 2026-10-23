@@ -44,6 +44,7 @@
     .choice input { width: 20px; height: 20px; margin: 0; accent-color: var(--accent); flex: none; }
     .criteria { margin: 0; padding-left: 20px; color: #344054; font-size: .95rem; }
     .criteria li { margin-bottom: 6px; }
+    .criteria ul { margin: 6px 0 0; padding-left: 18px; list-style: circle; }
     .counter { color: var(--muted); font-size: .9rem; margin: 0 0 12px; }
     .nominee {
       display: flex; align-items: center; gap: 12px; padding: 10px 12px;
@@ -120,14 +121,23 @@
       <h2 data-i18n="question">Who would you like to vote as Board of Trustees (BOT)?</h2>
       <p><strong data-i18n="criteria">Criteria</strong></p>
       <ul class="criteria">
-        <li data-i18n="c1">Not convicted by final judgement of an offense punishable by imprisonment for a period exceeding six (6) years, or a violation of the corporate code of the Philippines</li>
-        <li data-i18n="c2">Registered member in IPC within six (6) years prior to the date of election</li>
-        <li data-i18n="c3">Member of the Corporation (IPC-AG Inc.)</li>
-        <li data-i18n="c4">Majority of Trustees must be residents of the Philippines</li>
-        <li data-i18n="c5">Not a part of IPC Pastoral Staff</li>
-        <li data-i18n="c6">To be of legal age or 21 years of age and above</li>
-        <li data-i18n="c7">Currently residing in Baguio at the time of the election</li>
-        <li data-i18n="c8">Physically fit to conduct duties of BOT</li>
+        <li data-i18n="c1">Not convicted by final judgment of an offense punishable by imprisonment for a period exceeding six (6) years, or a violation of the Corporation Code of the Philippines.</li>
+        <li data-i18n="c2">Registered member of IPC within six (6) years prior to the date of election.</li>
+        <li><span data-i18n="c3">Confirmed Corporate Member of IPC-AG Inc., meeting the following requirements:</span>
+          <ul>
+            <li data-i18n="c3a">Professes faith in Jesus Christ and identifies with the Christian faith.</li>
+            <li data-i18n="c3b">Affirms the mission, vision, fundamental beliefs, and values of IPC.</li>
+            <li data-i18n="c3c">Actively participates in the worship, fellowship, discipleship, and ministry of IPC and is in good standing, including participation in the Annual General Assembly (AGA), for a minimum period of three (3) years, subject to verification and confirmation by IPC.</li>
+            <li data-i18n="c3d">Has publicly declared faith through water baptism.</li>
+            <li data-i18n="c3e">Has completed Apex 1 and Apex 2 classes, or their duly approved equivalent.</li>
+            <li data-i18n="c3f">Has signed the IPC Membership Covenant Form.</li>
+            <li data-i18n="c3g">Has received confirmation of membership from the Board of Trustees.</li>
+          </ul>
+        </li>
+        <li data-i18n="c4">Majority of the Trustees must be residents of the Philippines.</li>
+        <li data-i18n="c5">Of legal age, at least twenty-one (21) years old.</li>
+        <li data-i18n="c6">Currently residing in Baguio City at the time of the election.</li>
+        <li data-i18n="c7">Physically fit to perform the duties and responsibilities of a BOT member.</li>
       </ul>
     </div>
 
@@ -176,14 +186,20 @@ const I18N = {
     searchName: 'Type to search your name…',
     question: 'Who would you like to vote as Board of Trustees (BOT)?',
     criteria: 'Criteria',
-    c1: 'Not convicted by final judgement of an offense punishable by imprisonment for a period exceeding six (6) years, or a violation of the corporate code of the Philippines',
-    c2: 'Registered member in IPC within six (6) years prior to the date of election',
-    c3: 'Member of the Corporation (IPC-AG Inc.)',
-    c4: 'Majority of Trustees must be residents of the Philippines',
-    c5: 'Not a part of IPC Pastoral Staff',
-    c6: 'To be of legal age or 21 years of age and above',
-    c7: 'Currently residing in Baguio at the time of the election',
-    c8: 'Physically fit to conduct duties of BOT',
+    c1: 'Not convicted by final judgment of an offense punishable by imprisonment for a period exceeding six (6) years, or a violation of the Corporation Code of the Philippines.',
+    c2: 'Registered member of IPC within six (6) years prior to the date of election.',
+    c3: 'Confirmed Corporate Member of IPC-AG Inc., meeting the following requirements:',
+    c3a: 'Professes faith in Jesus Christ and identifies with the Christian faith.',
+    c3b: 'Affirms the mission, vision, fundamental beliefs, and values of IPC.',
+    c3c: 'Actively participates in the worship, fellowship, discipleship, and ministry of IPC and is in good standing, including participation in the Annual General Assembly (AGA), for a minimum period of three (3) years, subject to verification and confirmation by IPC.',
+    c3d: 'Has publicly declared faith through water baptism.',
+    c3e: 'Has completed Apex 1 and Apex 2 classes, or their duly approved equivalent.',
+    c3f: 'Has signed the IPC Membership Covenant Form.',
+    c3g: 'Has received confirmation of membership from the Board of Trustees.',
+    c4: 'Majority of the Trustees must be residents of the Philippines.',
+    c5: 'Of legal age, at least twenty-one (21) years old.',
+    c6: 'Currently residing in Baguio City at the time of the election.',
+    c7: 'Physically fit to perform the duties and responsibilities of a BOT member.',
     nominees: 'Nominees',
     counter: 'Select {min} to {max}. {n} selected.',
     certification: 'Certification',
@@ -234,14 +250,20 @@ const I18N = {
     searchName: 'I-type para hanapin ang pangalan…',
     question: 'Sino ang nais mong iboto bilang Board of Trustees (BOT)?',
     criteria: 'Mga Pamantayan',
-    c1: 'Hindi nahatulan sa pinal na desisyon ng hukuman ng pagkakasalang may parusang pagkakakulong nang higit sa anim (6) na taon, o ng paglabag sa corporate code ng Pilipinas',
-    c2: 'Rehistradong miyembro ng IPC sa loob ng anim (6) na taon bago ang petsa ng halalan',
-    c3: 'Miyembro ng Korporasyon (IPC-AG Inc.)',
-    c4: 'Ang nakararami sa mga Trustee ay dapat residente ng Pilipinas',
-    c5: 'Hindi bahagi ng Pastoral Staff ng IPC',
-    c6: 'Nasa hustong gulang o 21 taong gulang pataas',
-    c7: 'Kasalukuyang naninirahan sa Baguio sa panahon ng halalan',
-    c8: 'May pisikal na kakayahang gampanan ang mga tungkulin ng BOT',
+    c1: 'Hindi nahatulan sa pinal na desisyon ng hukuman ng pagkakasalang may parusang pagkakakulong nang higit sa anim (6) na taon, o ng paglabag sa Corporation Code ng Pilipinas.',
+    c2: 'Rehistradong miyembro ng IPC sa loob ng anim (6) na taon bago ang petsa ng halalan.',
+    c3: 'Kumpirmadong Corporate Member ng IPC-AG Inc., na nakatutugon sa mga sumusunod na kahingian:',
+    c3a: 'Nagpapahayag ng pananampalataya kay Hesukristo at kinikilala ang sarili bilang bahagi ng pananampalatayang Kristiyano.',
+    c3b: 'Pinagtitibay ang misyon, bisyon, mga pangunahing paniniwala, at mga pagpapahalaga ng IPC.',
+    c3c: 'Aktibong nakikilahok sa pagsamba, fellowship, discipleship, at ministeryo ng IPC at nasa mabuting katayuan, kabilang ang pakikilahok sa Annual General Assembly (AGA), sa loob ng hindi bababa sa tatlong (3) taon, na sasailalim sa beripikasyon at kumpirmasyon ng IPC.',
+    c3d: 'Hayagang nagpahayag ng pananampalataya sa pamamagitan ng bautismo sa tubig.',
+    c3e: 'Nakatapos ng mga klaseng Apex 1 at Apex 2, o ng katumbas nitong opisyal na inaprubahan.',
+    c3f: 'Nakapirma sa IPC Membership Covenant Form.',
+    c3g: 'Nakatanggap ng kumpirmasyon ng pagiging miyembro mula sa Board of Trustees.',
+    c4: 'Ang nakararami sa mga Trustee ay dapat residente ng Pilipinas.',
+    c5: "Nasa hustong gulang, hindi bababa sa dalawampu't isang (21) taong gulang.",
+    c6: 'Kasalukuyang naninirahan sa Lungsod ng Baguio sa panahon ng halalan.',
+    c7: 'May pisikal na kakayahang gampanan ang mga tungkulin at responsibilidad ng isang miyembro ng BOT.',
     nominees: 'Mga Nominado',
     counter: 'Pumili ng {min} hanggang {max}. {n} ang napili.',
     certification: 'Sertipikasyon',
