@@ -15,12 +15,13 @@ A ballot form for the IPC Board of Trustees election. Voters enter their full na
 
 - `index.html`: the ballot page. Self-contained HTML, CSS, and JS with no build step. All UI text lives in the `I18N` object (`en`, `tl`); elements use `data-i18n` / `data-i18n-ph`.
 - `apps-script/Code.gs`: the backend. It is not deployed from git; it gets pasted into the Sheet's **Extensions → Apps Script**.
+- `results.html`: results page. Not linked from the ballot; open `/bot/results.html` directly.
 - `photos/`: nominee photos (112×112 WebP, about 2 KB each).
 - `README.md`: setup and election-day notes.
 
 ## How it works
 
-- `doGet` returns config `{ nominees, members, maxVotes, minVotes, open }`. The page renders the checkboxes from `nominees`, so the nominee list lives only in `Code.gs`. `members` (names from the `Voters` sheet) feed a `<datalist>` of suggestions on the name and proxy fields.
+- `doGet` with `?action=results` returns the tally (see Results below); otherwise it returns config `{ nominees, members, maxVotes, minVotes, open }`. The page renders the checkboxes from `nominees`, so the nominee list lives only in `Code.gs`. `members` (names from the `Voters` sheet) feed a `<datalist>` of suggestions on the name and proxy fields.
 - `doPost` receives JSON sent as `Content-Type: text/plain`. Using text/plain avoids a CORS preflight, so the page can read the JSON response.
 - Server-side checks, in order:
   1. Is voting open?
@@ -37,7 +38,8 @@ A ballot form for the IPC Board of Trustees election. Voters enter their full na
 - `NOMINEES` is a list of `{ name, photo }`. `photo` is a URL or a path relative to the page; empty means the placeholder SVG.
 - `LockService` serializes writes.
 - Each ballot is one row in the `Ballots` sheet: `Timestamp | Voter Name | Voting As | Proxy For | Signature | <one column per nominee, 1 = voted> | Submission ID`. Headers are built from `NOMINEES` on the first write, so finalize the nominees before voting starts.
-- No endpoint exposes the results. Tally them in the Sheet, e.g. `=SUM(F2:F)`.
+- Results: `results()` returns `{ ok: false, code: 'notYet' }` while `VOTING_OPEN` is true, so nobody (not even the committee) sees a tally during voting. Once closed it returns `{ ballots, proxies, members, nominees: [{ name, photo, votes }], updated }`. No passcode (Kevin decided against one).
+- `results.html` shows turnout plus votes per nominee (sorted, % of ballots, ties share a rank). It has an auto-refresh on/off button (every 30 s, paused while the tab is hidden; choice saved in `localStorage`), so a page left open flips to the results by itself when voting closes. English only. The Sheet is still the authoritative tally, e.g. `=SUM(F2:F)`.
 - On the client, checkboxes are disabled once the voter reaches the max, and a confirm dialog lists their picks before submitting.
 
 ## Status

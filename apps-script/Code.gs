@@ -26,7 +26,8 @@ const VOTERS_SHEET = 'Voters'; // optional: list eligible members' full names in
 
 const NOMINEE_NAMES = NOMINEES.map(n => n.name);
 
-function doGet() {
+function doGet(e) {
+  if (e && e.parameter && e.parameter.action === 'results') return results();
   return json({
     nominees: NOMINEES,
     members: getMembers(SpreadsheetApp.getActiveSpreadsheet()), // shown as name suggestions on the page
@@ -45,7 +46,42 @@ function getMembers(ss) {
     .filter(Boolean);
 }
 
+// Tally for results.html (GET ?action=results). Only available once voting is closed (VOTING_OPEN = false).
+function results() {
+  if (VOTING_OPEN) {
+    return json({ ok: false, code: 'notYet', error: 'Results will be available after voting closes.' });
+  }
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sh = ss.getSheetByName(BALLOT_SHEET);
+  // Columns: Timestamp | Voter Name | Voting As | Proxy For | Signature | nominees...
+  const rows = sh && sh.getLastRow() > 1
+    ? sh.getRange(2, 1, sh.getLastRow() - 1, 5 + NOMINEE_NAMES.length).getValues()
+    : [];
+  return json({
+    ok: true,
+    ballots: rows.length,
+    proxies: rows.filter(r => r[2] === 'Proxy').length,
+    members: getMembers(ss).length, // 0 when there's no Voters list
+    nominees: NOMINEES.map((n, i) => ({
+      name: n.name,
+      photo: n.photo,
+      votes: rows.filter(r => Number(r[5 + i]) === 1).length,
+    })),
+    updated: new Date().toISOString(),
+  });
+}
+
 function doPost(e) {
+  let d;
+  try {
+    d = JSON.parse(e.postData.contents || '{}');
+  } catch (_) {
+    return json({ ok: false, code: 'server', error: 'Bad request.' });
+  }
+  return castBallot(d);
+}
+
+function castBallot(d) {
   const lock = LockService.getScriptLock();
   try {
     lock.waitLock(15000);
@@ -55,8 +91,6 @@ function doPost(e) {
 
   try {
     if (!VOTING_OPEN) return json({ ok: false, code: 'closed', error: 'Voting is closed.' });
-
-    const d = JSON.parse(e.postData.contents || '{}');
 
     // Honeypot: bots fill hidden fields. Pretend success, store nothing.
     if (d.website) return json({ ok: true });

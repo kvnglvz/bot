@@ -6,6 +6,7 @@ Static ballot form (GitHub Pages) that submits to a Google Sheet via a Google Ap
 
 - `index.html` — the ballot page (served by GitHub Pages)
 - `apps-script/Code.gs` — backend; paste into the Sheet's **Extensions → Apps Script**
+- `results.html` — results page (shows the tally only after voting closes)
 - `photos/` — nominee photos, referenced from `NOMINEES` as `photos/<file>.webp`
 
 ## Setup
@@ -24,3 +25,4 @@ Photos: keep them small (about 200×200 px, under 30 KB each) so the page loads 
 - Optional allowlist: add a `Voters` sheet with eligible members' full names in column A (no header). The names also appear as suggestions on the form.
 - Close voting: set `VOTING_OPEN = false` and deploy a new version.
 - Tally: `=SUM(F2:F)` (etc.) under each nominee column in the `Ballots` sheet.
+- Results: `results.html` shows the tally once `VOTING_OPEN = false` is deployed. While voting is open it only says results aren't available yet.
