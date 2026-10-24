@@ -23,6 +23,6 @@ Photos: keep them small (about 200×200 px, under 30 KB each) so the page loads 
 - One ballot per member is enforced server-side, keyed by name (case, punctuation, and word order are ignored): the voter's own name, or the name of the person they are a proxy for.
 - The signature must match the voter's full name.
 - Optional allowlist: add a `Voters` sheet with eligible members' full names in column A (no header). The names also appear as suggestions on the form.
-- Close voting: set `VOTING_OPEN = false` and deploy a new version.
+- Open/close voting: in the `Settings` tab, set cell **B1** to `Open` or `Closed` (dropdown). It takes effect immediately; no redeploy. To create the tab, run `setup` once in the Apps Script editor.
 - Tally: `=SUM(F2:F)` (etc.) under each nominee column in the `Ballots` sheet.
-- Results: `results.html` shows the tally once `VOTING_OPEN = false` is deployed. While voting is open it only says results aren't available yet.
+- Results: `results.html` shows the tally once `Settings!B1` is `Closed`. While voting is open it only says results aren't available yet.

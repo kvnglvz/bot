@@ -18,9 +18,9 @@ const NOMINEES = [
 ];
 const MAX_VOTES = NOMINEES.length; // max nominees a voter may check
 const MIN_VOTES = 1;               // min nominees a voter must check
-const VOTING_OPEN = true;          // set false (and redeploy) to close voting
 
 const BALLOT_SHEET = 'Ballots';
+const SETTINGS_SHEET = 'Settings'; // cell B1 = Open / Closed. Takes effect immediately, no redeploy. Run setup() once to create it.
 const VOTERS_SHEET = 'Voters'; // optional: list eligible members' full names in column A (no header). If this sheet is missing or empty, anyone can vote.
 // ====================
 
@@ -28,13 +28,35 @@ const NOMINEE_NAMES = NOMINEES.map(n => n.name);
 
 function doGet(e) {
   if (e && e.parameter && e.parameter.action === 'results') return results();
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
   return json({
     nominees: NOMINEES,
-    members: getMembers(SpreadsheetApp.getActiveSpreadsheet()), // shown as name suggestions on the page
+    members: getMembers(ss), // shown as name suggestions on the page
     maxVotes: MAX_VOTES,
     minVotes: MIN_VOTES,
-    open: VOTING_OPEN,
+    open: votingOpen(ss),
   });
+}
+
+// The voting switch: Settings!B1. Only "Closed" closes voting; a missing Settings sheet means open.
+function votingOpen(ss) {
+  const sh = ss.getSheetByName(SETTINGS_SHEET);
+  if (!sh) return true;
+  return String(sh.getRange('B1').getValue()).trim().toLowerCase() !== 'closed';
+}
+
+// Run once from the Apps Script editor (select setup → Run). Creates the Settings tab
+// with an Open/Closed dropdown in B1. Safe to run again; it keeps the current value.
+function setup() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sh = ss.getSheetByName(SETTINGS_SHEET) || ss.insertSheet(SETTINGS_SHEET);
+  sh.getRange('A1').setValue('Voting').setFontWeight('bold');
+  const cell = sh.getRange('B1');
+  if (!cell.getValue()) cell.setValue('Open');
+  cell.setDataValidation(SpreadsheetApp.newDataValidation()
+    .requireValueInList(['Open', 'Closed'], true)
+    .setAllowInvalid(false)
+    .build());
 }
 
 // Member names from the Voters sheet, cleaned up for display. [] if the sheet is missing or empty.
@@ -46,12 +68,12 @@ function getMembers(ss) {
     .filter(Boolean);
 }
 
-// Tally for results.html (GET ?action=results). Only available once voting is closed (VOTING_OPEN = false).
+// Tally for results.html (GET ?action=results). Only available once voting is closed.
 function results() {
-  if (VOTING_OPEN) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  if (votingOpen(ss)) {
     return json({ ok: false, code: 'notYet', error: 'Results will be available after voting closes.' });
   }
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sh = ss.getSheetByName(BALLOT_SHEET);
   // Columns: Timestamp | Voter Name | Voting As | Proxy For | Signature | nominees...
   const rows = sh && sh.getLastRow() > 1
@@ -90,7 +112,8 @@ function castBallot(d) {
   }
 
   try {
-    if (!VOTING_OPEN) return json({ ok: false, code: 'closed', error: 'Voting is closed.' });
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    if (!votingOpen(ss)) return json({ ok: false, code: 'closed', error: 'Voting is closed.' });
 
     // Honeypot: bots fill hidden fields. Pretend success, store nothing.
     if (d.website) return json({ ok: true });
@@ -121,7 +144,6 @@ function castBallot(d) {
     // The member this ballot counts for: the voter, or the person they are a proxy for
     const memberName = proxy ? proxyFor : name;
     const member = key(memberName);
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
 
     // Optional member allowlist (empty = anyone can vote)
     const allowed = getMembers(ss).map(key);

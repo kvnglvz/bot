@@ -23,6 +23,7 @@ A ballot form for the IPC Board of Trustees election. Voters enter their full na
 
 - `doGet` with `?action=results` returns the tally (see Results below); otherwise it returns config `{ nominees, members, maxVotes, minVotes, open }`. The page renders the checkboxes from `nominees`, so the nominee list lives only in `Code.gs`. `members` (names from the `Voters` sheet) feed a `<datalist>` of suggestions on the name and proxy fields.
 - `doPost` receives JSON sent as `Content-Type: text/plain`. Using text/plain avoids a CORS preflight, so the page can read the JSON response.
+- The voting switch is cell B1 of the `Settings` sheet (`votingOpen()`): only `Closed` closes; a missing sheet means open. Changes apply on the next request, with no redeploy. `setup()` (run once from the editor) creates the sheet with an Open/Closed dropdown. There is no `VOTING_OPEN` constant anymore.
 - Server-side checks, in order:
   1. Is voting open?
   2. Honeypot field `website`: if it's filled, return fake success and store nothing.
@@ -38,7 +39,7 @@ A ballot form for the IPC Board of Trustees election. Voters enter their full na
 - `NOMINEES` is a list of `{ name, photo }`. `photo` is a URL or a path relative to the page; empty means the placeholder SVG.
 - `LockService` serializes writes.
 - Each ballot is one row in the `Ballots` sheet: `Timestamp | Voter Name | Voting As | Proxy For | Signature | <one column per nominee, 1 = voted> | Submission ID`. Headers are built from `NOMINEES` on the first write, so finalize the nominees before voting starts.
-- Results: `results()` returns `{ ok: false, code: 'notYet' }` while `VOTING_OPEN` is true, so nobody (not even the committee) sees a tally during voting. Once closed it returns `{ ballots, proxies, members, nominees: [{ name, photo, votes }], updated }`. No passcode (Kevin decided against one).
+- Results: `results()` returns `{ ok: false, code: 'notYet' }` while voting is open, so nobody (not even the committee) sees a tally during voting. Once closed it returns `{ ballots, proxies, members, nominees: [{ name, photo, votes }], updated }`. No passcode (Kevin decided against one).
 - `results.html` shows turnout plus votes per nominee (sorted, % of ballots, ties share a rank). It has an auto-refresh on/off button (every 30 s, paused while the tab is hidden; choice saved in `localStorage`), so a page left open flips to the results by itself when voting closes. English only. The Sheet is still the authoritative tally, e.g. `=SUM(F2:F)`.
 - On the client, checkboxes are disabled once the voter reaches the max, and a confirm dialog lists their picks before submitting.
 
@@ -59,7 +60,7 @@ A ballot form for the IPC Board of Trustees election. Voters enter their full na
   - Test the duplicate-member block (self and proxy).
   - Test on a phone at the live URL.
   - Delete test rows but keep the header row.
-- To close voting, set `VOTING_OPEN = false` and deploy a new version.
+- To close voting (and publish results), set `Settings!B1` to `Closed`. No redeploy.
 
 ## Gotchas
 
