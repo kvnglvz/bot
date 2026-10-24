@@ -30,12 +30,13 @@ A ballot form for the IPC Board of Trustees election. Voters enter their full na
   5. Each vote is a valid nominee.
   6. Signature matches the voter's name.
   7. Optional `Voters` allowlist sheet: member full names in column A, no header. If the sheet is missing or empty, anyone can vote.
-  8. One ballot per member, keyed by name: the voter's own name, or the proxy-for name.
+  8. One ballot per member, keyed by name: the voter's own name, or the proxy-for name. If the existing row has the same `Submission ID` as the request, it's a retry of a ballot already recorded, so the server returns `ok` without adding a row.
+- Apps Script is intermittently slow (some calls hang 30 s+ and then 404). The page aborts each request after `TIMEOUT_MS` (8 s) and retries up to `ATTEMPTS` (3) times, showing "Still loading…" / "Still submitting…". Each submission carries a client-generated `id` that stays the same on retries and on a manual re-submit after an unconfirmed attempt, and resets when the form is edited.
 - Errors return `{ ok: false, code, error }`. The page shows `I18N[lang]['err_' + code]`, falling back to the English `error`.
 - Names are compared with `key()` in `Code.gs` / `nameKey()` in `index.html` (keep them in sync): case, punctuation, and word order are ignored, so "Tejedo, Luke Soliven." equals "Luke Soliven Tejedo".
 - `NOMINEES` is a list of `{ name, photo }`. `photo` is a URL or a path relative to the page; empty means the placeholder SVG.
 - `LockService` serializes writes.
-- Each ballot is one row in the `Ballots` sheet: `Timestamp | Voter Name | Voting As | Proxy For | Signature | <one column per nominee, 1 = voted>`. Headers are built from `NOMINEES` on the first write, so finalize the nominees before voting starts.
+- Each ballot is one row in the `Ballots` sheet: `Timestamp | Voter Name | Voting As | Proxy For | Signature | <one column per nominee, 1 = voted> | Submission ID`. Headers are built from `NOMINEES` on the first write, so finalize the nominees before voting starts.
 - No endpoint exposes the results. Tally them in the Sheet, e.g. `=SUM(F2:F)`.
 - On the client, checkboxes are disabled once the voter reaches the max, and a confirm dialog lists their picks before submitting.
 

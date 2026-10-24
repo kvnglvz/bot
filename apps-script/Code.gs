@@ -65,6 +65,7 @@ function doPost(e) {
     const proxy = d.votingAs === 'proxy';
     const proxyFor = proxy ? clean(d.proxyFor) : '';
     const signature = clean(d.signature);
+    const id = String(d.id || '').slice(0, 64); // client-generated; the same on retries of one submission
     const votes = Array.isArray(d.votes) ? [...new Set(d.votes.map(String))] : [];
 
     if (!name) {
@@ -98,15 +99,16 @@ function doPost(e) {
     const sheet = getBallotSheet(ss);
     const last = sheet.getLastRow();
     if (last > 1) {
-      // Columns B..D: Voter Name | Voting As | Proxy For
-      const used = sheet.getRange(2, 2, last - 1, 3).getValues()
-        .map(r => key(r[1] === 'Proxy' ? r[2] : r[0]));
-      if (used.includes(member)) {
+      // Columns: Timestamp | Voter Name | Voting As | Proxy For | Signature | nominees... | Submission ID
+      const prev = sheet.getRange(2, 1, last - 1, 6 + NOMINEE_NAMES.length).getValues()
+        .find(r => key(r[2] === 'Proxy' ? r[3] : r[1]) === member);
+      if (prev) {
+        // A retry of a submission we already recorded (the first reply was lost): report success, don't add a row
+        if (id && prev[5 + NOMINEE_NAMES.length] === id) return json({ ok: true });
         return json({ ok: false, code: 'duplicate', error: `A ballot has already been submitted for ${memberName}.` });
       }
     }
 
-    // Row: Timestamp | Voter Name | Voting As | Proxy For | Signature | one column per nominee (1 = voted)
     sheet.appendRow([
       new Date(),
       name,
@@ -114,6 +116,7 @@ function doPost(e) {
       proxyFor,
       signature,
       ...NOMINEE_NAMES.map(n => (votes.includes(n) ? 1 : '')),
+      id,
     ]);
 
     return json({ ok: true });
@@ -129,7 +132,7 @@ function getBallotSheet(ss) {
   let sh = ss.getSheetByName(BALLOT_SHEET);
   if (!sh) sh = ss.insertSheet(BALLOT_SHEET);
   if (sh.getLastRow() === 0) {
-    sh.appendRow(['Timestamp', 'Voter Name', 'Voting As', 'Proxy For', 'Signature', ...NOMINEE_NAMES]);
+    sh.appendRow(['Timestamp', 'Voter Name', 'Voting As', 'Proxy For', 'Signature', ...NOMINEE_NAMES, 'Submission ID']);
     sh.setFrozenRows(1);
   }
   return sh;
